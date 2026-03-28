@@ -1,0 +1,33 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>SwapProxy</title>
+  <style>
+    body { font-family: sans-serif; background: #06060E; 
+           color: #EAF; display: flex; flex-direction: column;
+           align-items: center; justify-content: center; 
+           min-height: 100vh; margin: 0; padding: 20px; }
+    .btn { background: linear-gradient(135deg, #00D4FF, #0066FF);
+           color: #000; border: none; border-radius: 14px;
+           padding: 16px 32px; font-size: 16px; font-weight: 700;
+           cursor: pointer; text-decoration: none; display: block; }
+  </style>
+</head>
+<body>
+  <h2>SwapProxy</h2>
+  <p id="desc">Нажми кнопку чтобы добавить сервер</p>
+  <a id="addBtn" class="btn" href="#">Добавить в SwapProxy</a>
+
+  <script>
+    // Берём параметр ?sub= или ?link= из URL страницы
+    const params = new URLSearchParams(location.search);
+    const payload = params.get('sub') || params.get('link') || '';
+    
+    if (payload) {
+      document.getElementById('addBtn').href = 
+        'swapproxy://add?link=' + encodeURIComponent(payload);
+    }
+  </script>
+</body>
+</html>
