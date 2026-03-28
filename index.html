@@ -1,32 +1,230 @@
-<html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SwapProxy</title>
   <style>
-    body { font-family: sans-serif; background: #06060E; 
-           color: #EAF; display: flex; flex-direction: column;
-           align-items: center; justify-content: center; 
-           min-height: 100vh; margin: 0; padding: 20px; }
-    .btn { background: linear-gradient(135deg, #00D4FF, #0066FF);
-           color: #000; border: none; border-radius: 14px;
-           padding: 16px 32px; font-size: 16px; font-weight: 700;
-           cursor: pointer; text-decoration: none; display: block; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #06060E;
+      color: #EAF0F8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #0D0D1A;
+      border: 1px solid #1E1E3A;
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #00D4FF, #0066FF);
+      border-radius: 16px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    h1 span { color: #00D4FF; }
+
+    .desc {
+      color: #7A8FA8;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    /* Payload preview */
+    .payload-box {
+      background: #12122B;
+      border: 1px solid #1E1E3A;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      text-align: left;
+      display: none;
+    }
+    .payload-label {
+      font-size: 10px;
+      color: #3A4A5C;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .payload-value {
+      font-size: 12px;
+      color: #7A8FA8;
+      word-break: break-all;
+    }
+
+    /* Кнопка */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #00D4FF, #0066FF);
+      color: #06060E;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn:active { opacity: 0.85; transform: scale(0.98); }
+    .btn.disabled {
+      background: #12122B;
+      color: #3A4A5C;
+      box-shadow: none;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /* Пустое состояние */
+    .empty {
+      color: #3A4A5C;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* Типы */
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .type-sub  { background: rgba(0,212,255,0.1); color: #00D4FF; border: 1px solid rgba(0,212,255,0.2); }
+    .type-proxy{ background: rgba(0,230,118,0.1); color: #00E676; border: 1px solid rgba(0,230,118,0.2); }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 11px;
+      color: #3A4A5C;
+    }
   </style>
 </head>
 <body>
-  <h2>SwapProxy</h2>
-  <p id="desc">Нажми кнопку чтобы добавить сервер</p>
-  <a id="addBtn" class="btn" href="#">Добавить в SwapProxy</a>
+  <div class="card">
+    <div class="logo">⚡</div>
+    <h1>Swap<span>Proxy</span></h1>
+
+    <div id="typeBadge" class="type-badge" style="display:none"></div>
+
+    <p class="desc" id="desc">Загружаю данные...</p>
+
+    <div class="payload-box" id="payloadBox">
+      <div class="payload-label">АДРЕС</div>
+      <div class="payload-value" id="payloadText"></div>
+    </div>
+
+    <a id="addBtn" class="btn disabled" href="#">Открыть SwapProxy</a>
+
+    <p class="empty" id="emptyMsg">
+      Ссылка не содержит данных.<br>
+      Используй эту страницу с параметром <code style="color:#00D4FF">?sub=</code> или <code style="color:#00D4FF">?link=</code>
+    </p>
+  </div>
+
+  <div class="footer">SwapProxy • Deep Link Bridge</div>
 
   <script>
-    // Берём параметр ?sub= или ?link= из URL страницы
     const params = new URLSearchParams(location.search);
-    const payload = params.get('sub') || params.get('link') || '';
-    
-    if (payload) {
-      document.getElementById('addBtn').href = 
-        'swapproxy://add?link=' + encodeURIComponent(payload);
+
+    // Поддерживаемые параметры:
+    //   ?sub=https://...    → подписка
+    //   ?link=vless://...   → одиночный прокси
+    //   ?link=https://...   → подписка (если начинается с https)
+    //   ?proxy=ip:port:u:p  → socks5
+    const sub   = params.get('sub')   || '';
+    const link  = params.get('link')  || '';
+    const proxy = params.get('proxy') || '';
+
+    const desc    = document.getElementById('desc');
+    const btn     = document.getElementById('addBtn');
+    const badge   = document.getElementById('typeBadge');
+    const payBox  = document.getElementById('payloadBox');
+    const payText = document.getElementById('payloadText');
+    const empty   = document.getElementById('emptyMsg');
+
+    function setReady(deepLink, labelText, badgeClass, shortPayload) {
+      btn.href = deepLink;
+      btn.classList.remove('disabled');
+      btn.textContent = '➕ Добавить в SwapProxy';
+
+      badge.textContent  = labelText;
+      badge.className    = 'type-badge ' + badgeClass;
+      badge.style.display = 'inline-block';
+
+      if (shortPayload) {
+        payText.textContent  = shortPayload;
+        payBox.style.display = 'block';
+      }
+    }
+
+    if (sub) {
+      // Подписка
+      desc.textContent = 'Нажми кнопку — SwapProxy откроется и автоматически загрузит подписку.';
+      setReady(
+        'swapproxy://add?link=' + encodeURIComponent(sub),
+        'ПОДПИСКА',
+        'type-sub',
+        sub.length > 60 ? sub.substring(0, 57) + '...' : sub
+      );
+    } else if (link) {
+      // Одиночный прокси или подписка через ?link=
+      const isProxy = /^(vless|vmess|trojan|ss|socks5):\/\//i.test(link);
+      desc.textContent = isProxy
+        ? 'Нажми кнопку — SwapProxy откроется и добавит сервер.'
+        : 'Нажми кнопку — SwapProxy откроется и загрузит подписку.';
+      setReady(
+        'swapproxy://add?link=' + encodeURIComponent(link),
+        isProxy ? 'ПРОКСИ' : 'ПОДПИСКА',
+        isProxy ? 'type-proxy' : 'type-sub',
+        link.length > 60 ? link.substring(0, 57) + '...' : link
+      );
+    } else if (proxy) {
+      // Socks5 короткий формат ip:port:login:pass
+      desc.textContent = 'Нажми кнопку — SwapProxy откроется и добавит SOCKS5 сервер.';
+      setReady(
+        'swapproxy://socks5/' + encodeURIComponent(proxy),
+        'SOCKS5',
+        'type-proxy',
+        proxy
+      );
+    } else {
+      // Нет параметров — показываем пустое состояние
+      desc.textContent = 'Страница для добавления серверов в SwapProxy.';
+      btn.textContent  = 'Нет данных';
+      empty.style.display = 'block';
     }
   </script>
 </body>
