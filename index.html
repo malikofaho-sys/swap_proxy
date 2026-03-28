@@ -188,7 +188,7 @@ if(sub||link||proxy){
 }
 
 const logoImg=document.getElementById('logoImg');
-logoImg.onerror=function(){this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<span style="font-size:36px">&#128274;</span>')};
+logoImg.onload=function(){document.querySelector('.brand').style.display='none'};logoImg.onerror=function(){this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<span style="font-size:36px">logoImg.onerror=function(){this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<span style="font-size:36px">&#128274;</span>')}#128274;</span>')};
 
 const statuses=[
   ['TUNNEL ACTIVE','0x4F4B'],['BYPASS ENABLED','0x7E2A'],
