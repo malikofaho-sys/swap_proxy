@@ -1,231 +1,202 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SwapProxy</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #06060E;
-      color: #EAF0F8;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .card {
-      background: #0D0D1A;
-      border: 1px solid #1E1E3A;
-      border-radius: 20px;
-      padding: 32px 24px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-    }
-
-    .logo {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #00D4FF, #0066FF);
-      border-radius: 16px;
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
-    }
-
-    h1 {
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    h1 span { color: #00D4FF; }
-
-    .desc {
-      color: #7A8FA8;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 28px;
-    }
-
-    /* Payload preview */
-    .payload-box {
-      background: #12122B;
-      border: 1px solid #1E1E3A;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 20px;
-      text-align: left;
-      display: none;
-    }
-    .payload-label {
-      font-size: 10px;
-      color: #3A4A5C;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-    .payload-value {
-      font-size: 12px;
-      color: #7A8FA8;
-      word-break: break-all;
-    }
-
-    /* Кнопка */
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #00D4FF, #0066FF);
-      color: #06060E;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35);
-      transition: opacity 0.15s, transform 0.15s;
-    }
-    .btn:active { opacity: 0.85; transform: scale(0.98); }
-    .btn.disabled {
-      background: #12122B;
-      color: #3A4A5C;
-      box-shadow: none;
-      cursor: default;
-      pointer-events: none;
-    }
-
-    /* Пустое состояние */
-    .empty {
-      color: #3A4A5C;
-      font-size: 13px;
-      margin-top: 16px;
-      display: none;
-    }
-
-    /* Типы */
-    .type-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 16px;
-    }
-    .type-sub  { background: rgba(0,212,255,0.1); color: #00D4FF; border: 1px solid rgba(0,212,255,0.2); }
-    .type-proxy{ background: rgba(0,230,118,0.1); color: #00E676; border: 1px solid rgba(0,230,118,0.2); }
-
-    .footer {
-      margin-top: 24px;
-      font-size: 11px;
-      color: #3A4A5C;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SwapProxy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#030308;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;overflow:hidden;position:relative}
+  #matrix-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.18}
+  .scene{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:40px 24px 48px;max-width:480px;width:100%}
+  .logo-wrap{position:relative;margin-bottom:28px}
+  .logo-ring{width:100px;height:100px;border-radius:22px;background:linear-gradient(135deg,#0a1628,#0d1f3c);border:1px solid rgba(0,150,255,0.25);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(0,100,200,0.2),inset 0 1px 0 rgba(255,255,255,0.06)}
+  .logo-ring img{width:88px;height:88px;border-radius:18px;object-fit:cover}
+  .logo-scan{position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,rgba(0,180,255,0.8),transparent);animation:scan 2.5s ease-in-out infinite;border-radius:22px 22px 0 0}
+  @keyframes scan{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:calc(100% - 3px);opacity:0}}
+  .corner{position:absolute;width:12px;height:12px;border-color:rgba(0,200,255,0.7);border-style:solid}
+  .corner.tl{top:-3px;left:-3px;border-width:2px 0 0 2px}
+  .corner.tr{top:-3px;right:-3px;border-width:2px 2px 0 0}
+  .corner.bl{bottom:-3px;left:-3px;border-width:0 0 2px 2px}
+  .corner.br{bottom:-3px;right:-3px;border-width:0 2px 2px 0}
+  .brand{text-align:center;margin-bottom:6px}
+  .brand-name{font-size:32px;font-weight:700;font-family:-apple-system,sans-serif;letter-spacing:1px}
+  .brand-swap{color:#c8d8f0}
+  .brand-proxy{color:#1a8fff;text-shadow:0 0 20px rgba(26,143,255,0.5)}
+  .tagline{font-size:11px;color:rgba(100,150,220,0.6);letter-spacing:3px;text-transform:uppercase;margin-bottom:32px;font-family:'Share Tech Mono',monospace}
+  .cipher-strip{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap;justify-content:center}
+  .cipher-pill{background:rgba(0,100,200,0.08);border:1px solid rgba(0,150,255,0.15);border-radius:6px;padding:4px 10px;font-size:10px;color:rgba(80,160,255,0.7);font-family:'Share Tech Mono',monospace;letter-spacing:1px;animation:pillPulse 3s ease-in-out infinite}
+  .cipher-pill:nth-child(2){animation-delay:.5s}
+  .cipher-pill:nth-child(3){animation-delay:1s}
+  .cipher-pill:nth-child(4){animation-delay:1.5s}
+  @keyframes pillPulse{0%,100%{opacity:0.5;border-color:rgba(0,150,255,0.15)}50%{opacity:1;border-color:rgba(0,150,255,0.4)}}
+  .status-bar{width:100%;background:rgba(0,20,50,0.6);border:1px solid rgba(0,100,200,0.2);border-radius:10px;padding:12px 16px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;animation:blink 1.5s ease-in-out infinite;flex-shrink:0}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+  .status-text{font-size:11px;color:rgba(100,200,150,0.8);font-family:'Share Tech Mono',monospace;letter-spacing:1px;flex:1}
+  .status-code{font-size:10px;color:rgba(0,150,255,0.5);font-family:'Share Tech Mono',monospace}
+  .card{width:100%;background:rgba(5,15,35,0.85);backdrop-filter:blur(10px);border:1px solid rgba(0,100,200,0.2);border-radius:16px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,150,255,0.5),transparent)}
+  .card-label{font-size:9px;color:rgba(0,150,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:'Share Tech Mono',monospace}
+  .server-name{font-size:15px;color:#c8d8f0;font-family:-apple-system,sans-serif;font-weight:600;margin-bottom:4px;word-break:break-all}
+  .server-addr{font-size:11px;color:rgba(80,130,200,0.7);font-family:'Share Tech Mono',monospace;margin-bottom:16px}
+  .type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Share Tech Mono',monospace;background:rgba(0,80,200,0.15);border:1px solid rgba(0,120,255,0.25);color:rgba(80,160,255,0.8)}
+  .btn{display:block;width:100%;padding:16px;background:linear-gradient(135deg,rgba(0,100,200,0.9),rgba(0,60,160,0.9));border:1px solid rgba(0,150,255,0.4);border-radius:12px;color:#fff;font-size:14px;font-family:-apple-system,sans-serif;font-weight:700;text-decoration:none;text-align:center;letter-spacing:0.5px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;box-shadow:0 4px 24px rgba(0,100,200,0.3)}
+  .btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);animation:shimmer 2.5s ease-in-out infinite}
+  @keyframes shimmer{0%{left:-100%}100%{left:200%}}
+  .btn:hover{box-shadow:0 6px 32px rgba(0,120,255,0.5);transform:translateY(-1px)}
+  .btn .btn-icon{margin-right:8px;font-size:16px}
+  .empty-state{text-align:center;padding:16px 0}
+  .empty-title{font-size:13px;color:rgba(80,120,180,0.6);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-bottom:6px}
+  .empty-sub{font-size:10px;color:rgba(60,100,150,0.4);font-family:'Share Tech Mono',monospace}
+  .empty-sub code{color:rgba(0,150,255,0.5)}
+  .glitch{animation:glitch 8s ease-in-out infinite}
+  @keyframes glitch{0%,95%,100%{text-shadow:none}96%{text-shadow:2px 0 rgba(255,0,80,0.5),-2px 0 rgba(0,255,200,0.5)}97%{text-shadow:-1px 0 rgba(255,0,80,0.5),1px 0 rgba(0,255,200,0.5)}98%{text-shadow:none}99%{text-shadow:1px 0 rgba(255,0,80,0.3)}}
+  .route-vis{display:flex;align-items:center;gap:0;width:100%;margin:16px 0 20px;justify-content:space-between}
+  .rnode{background:rgba(0,30,70,0.8);border:1px solid rgba(0,100,200,0.25);border-radius:8px;padding:6px 10px;font-size:9px;color:rgba(80,150,255,0.7);font-family:'Share Tech Mono',monospace;letter-spacing:1px;flex-shrink:0}
+  .rline{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,100,200,0.3),rgba(0,200,255,0.6),rgba(0,100,200,0.3));position:relative;margin:0 4px}
+  .rline::after{content:'';position:absolute;top:-2px;width:5px;height:5px;border-radius:50%;background:#00d4ff;box-shadow:0 0 6px #00d4ff;animation:travel 2s ease-in-out infinite}
+  .rline:nth-of-type(2)::after{animation-delay:0.67s}
+  .rline:nth-of-type(4)::after{animation-delay:1.33s}
+  @keyframes travel{0%{left:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:calc(100% - 5px);opacity:0}}
+  .footer{font-size:9px;color:rgba(40,80,140,0.5);font-family:'Share Tech Mono',monospace;letter-spacing:2px;margin-top:8px}
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">⚡</div>
-    <h1>Swap<span>Proxy</span></h1>
-
-    <div id="typeBadge" class="type-badge" style="display:none"></div>
-
-    <p class="desc" id="desc">Загружаю данные...</p>
-
-    <div class="payload-box" id="payloadBox">
-      <div class="payload-label">АДРЕС</div>
-      <div class="payload-value" id="payloadText"></div>
+<canvas id="matrix-canvas"></canvas>
+<div class="scene">
+  <div class="logo-wrap">
+    <div class="logo-ring">
+      <img id="logoImg" src="icon.png" alt="SwapProxy"/>
+      <div class="logo-scan"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
     </div>
-
-    <a id="addBtn" class="btn disabled" href="#">Открыть SwapProxy</a>
-
-    <p class="empty" id="emptyMsg">
-      Ссылка не содержит данных.<br>
-      Используй эту страницу с параметром <code style="color:#00D4FF">?sub=</code> или <code style="color:#00D4FF">?link=</code>
-    </p>
   </div>
+  <div class="brand glitch">
+    <span class="brand-name"><span class="brand-swap">Swap</span><span class="brand-proxy">Proxy</span></span>
+  </div>
+  <div class="tagline">bypass · encrypt · connect</div>
+  <div class="cipher-strip">
+    <span class="cipher-pill">AES-256</span>
+    <span class="cipher-pill">TLS 1.3</span>
+    <span class="cipher-pill">REALITY</span>
+    <span class="cipher-pill">VLESS</span>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <div class="status-text" id="statusText">ROUTE SECURE</div>
+    <div class="status-code" id="statusCode">0x4F4B</div>
+  </div>
+  <div class="card" id="mainCard">
+    <div class="card-label">// incoming payload</div>
+    <div id="cardContent"></div>
+  </div>
+  <div class="route-vis">
+    <div class="rnode">YOU</div>
+    <div class="rline"></div>
+    <div class="rnode">ENC</div>
+    <div class="rline"></div>
+    <div class="rnode">NODE</div>
+    <div class="rline"></div>
+    <div class="rnode">WEB</div>
+  </div>
+  <div class="footer">SWAPPROXY // SECURE TUNNEL // v1.0</div>
+</div>
+<script>
+const canvas=document.getElementById('matrix-canvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+const chars='01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+const cols=Math.floor(window.innerWidth/18);
+const drops=Array(cols).fill(0).map(()=>Math.random()*-100);
+function drawMatrix(){
+  ctx.fillStyle='rgba(3,3,8,0.05)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<cols;i++){
+    const ch=chars[Math.floor(Math.random()*chars.length)];
+    const x=i*18,y=drops[i]*18;
+    const isHead=Math.random()>0.95;
+    ctx.fillStyle=isHead?'rgba(150,220,255,0.9)':'rgba(0,100,200,0.35)';
+    ctx.font='14px Share Tech Mono,monospace';
+    ctx.fillText(ch,x,y);
+    if(y>canvas.height&&Math.random()>0.975)drops[i]=0;
+    drops[i]+=0.5;
+  }
+}
+setInterval(drawMatrix,50);
 
-  <div class="footer">SwapProxy • Deep Link Bridge</div>
+const params=new URLSearchParams(location.search);
+const sub=params.get('sub')||'';
+const link=params.get('link')||'';
+const proxy=params.get('proxy')||'';
+const cardContent=document.getElementById('cardContent');
+const statusText=document.getElementById('statusText');
+const statusCode=document.getElementById('statusCode');
 
-  <script>
-    const params = new URLSearchParams(location.search);
+function typewrite(el,text,cb){
+  el.textContent='';let i=0;
+  const iv=setInterval(()=>{if(i<text.length){el.textContent+=text[i++];}else{clearInterval(iv);if(cb)cb();}},22);
+}
+function setStatus(txt,code){typewrite(statusText,txt);statusCode.textContent=code;}
+function mkBtn(deepLink,label){
+  const a=document.createElement('a');
+  a.className='btn';a.href=deepLink;
+  a.innerHTML='<span class="btn-icon">&#9889;</span>'+label;
+  return a;
+}
 
-    // Поддерживаемые параметры:
-    //   ?sub=https://...    → подписка
-    //   ?link=vless://...   → одиночный прокси
-    //   ?link=https://...   → подписка (если начинается с https)
-    //   ?proxy=ip:port:u:p  → socks5
-    const sub   = params.get('sub')   || '';
-    const link  = params.get('link')  || '';
-    const proxy = params.get('proxy') || '';
+if(sub||link||proxy){
+  let deepLink='',dispName='',dispAddr='',type='';
+  if(sub){
+    const short=sub.length>48?sub.substring(0,45)+'...':sub;
+    dispName='Подписка';dispAddr=short;type='SUBSCRIPTION';
+    deepLink='swapproxy://add?link='+encodeURIComponent(sub);
+  }else if(link){
+    const isProxy=/^(vless|vmess|trojan|ss|socks5):\/\//i.test(link);
+    type=isProxy?'PROXY LINK':'SUBSCRIPTION';
+    const uri=link.match(/[@\/]([^@\/]+:\d+)/);
+    const frag=link.match(/#(.+)$/);
+    dispName=frag?decodeURIComponent(frag[1]):'Server';
+    dispAddr=uri?uri[1]:link.substring(0,40)+'...';
+    deepLink='swapproxy://add?link='+encodeURIComponent(link);
+  }else if(proxy){
+    const pts=proxy.split(':');
+    dispName=pts[0]||'Server';
+    dispAddr=pts[0]+':'+(pts[1]||'');
+    type='SOCKS5';
+    deepLink='swapproxy://socks5/'+encodeURIComponent(proxy);
+  }
+  cardContent.innerHTML=
+    '<div class="server-name" id="srvName"></div>'+
+    '<div class="server-addr">'+dispAddr+'</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+
+    '<span class="type-badge">'+type+'</span></div>';
+  typewrite(document.getElementById('srvName'),dispName);
+  cardContent.appendChild(mkBtn(deepLink,'Добавить в SwapProxy'));
+  setStatus('PAYLOAD DECODED','0x9A2F');
+}else{
+  cardContent.innerHTML=
+    '<div class="empty-state">'+
+    '<div class="empty-title">NO PAYLOAD DETECTED</div>'+
+    '<div class="empty-sub">Используй параметры<br>'+
+    '<code>?sub=</code> <code>?link=</code> <code>?proxy=</code></div></div>';
+  setStatus('AWAITING PAYLOAD','0x00FF');
+}
 
-    const desc    = document.getElementById('desc');
-    const btn     = document.getElementById('addBtn');
-    const badge   = document.getElementById('typeBadge');
-    const payBox  = document.getElementById('payloadBox');
-    const payText = document.getElementById('payloadText');
-    const empty   = document.getElementById('emptyMsg');
+const logoImg=document.getElementById('logoImg');
+logoImg.onerror=function(){this.style.display='none';this.parentElement.insertAdjacentHTML('beforeend','<span style="font-size:36px">&#128274;</span>')};
 
-    function setReady(deepLink, labelText, badgeClass, shortPayload) {
-      btn.href = deepLink;
-      btn.classList.remove('disabled');
-      btn.textContent = '➕ Добавить в SwapProxy';
-
-      badge.textContent  = labelText;
-      badge.className    = 'type-badge ' + badgeClass;
-      badge.style.display = 'inline-block';
-
-      if (shortPayload) {
-        payText.textContent  = shortPayload;
-        payBox.style.display = 'block';
-      }
-    }
-
-    if (sub) {
-      // Подписка
-      desc.textContent = 'Нажми кнопку — SwapProxy откроется и автоматически загрузит подписку.';
-      setReady(
-        'swapproxy://add?link=' + encodeURIComponent(sub),
-        'ПОДПИСКА',
-        'type-sub',
-        sub.length > 60 ? sub.substring(0, 57) + '...' : sub
-      );
-    } else if (link) {
-      // Одиночный прокси или подписка через ?link=
-      const isProxy = /^(vless|vmess|trojan|ss|socks5):\/\//i.test(link);
-      desc.textContent = isProxy
-        ? 'Нажми кнопку — SwapProxy откроется и добавит сервер.'
-        : 'Нажми кнопку — SwapProxy откроется и загрузит подписку.';
-      setReady(
-        'swapproxy://add?link=' + encodeURIComponent(link),
-        isProxy ? 'ПРОКСИ' : 'ПОДПИСКА',
-        isProxy ? 'type-proxy' : 'type-sub',
-        link.length > 60 ? link.substring(0, 57) + '...' : link
-      );
-    } else if (proxy) {
-      // Socks5 короткий формат ip:port:login:pass
-      desc.textContent = 'Нажми кнопку — SwapProxy откроется и добавит SOCKS5 сервер.';
-      setReady(
-        'swapproxy://socks5/' + encodeURIComponent(proxy),
-        'SOCKS5',
-        'type-proxy',
-        proxy
-      );
-    } else {
-      // Нет параметров — показываем пустое состояние
-      desc.textContent = 'Страница для добавления серверов в SwapProxy.';
-      btn.textContent  = 'Нет данных';
-      empty.style.display = 'block';
-    }
-  </script>
+const statuses=[
+  ['TUNNEL ACTIVE','0x4F4B'],['BYPASS ENABLED','0x7E2A'],
+  ['ENCRYPTION OK','0xBB01'],['ROUTE SECURE','0x9F3C'],
+  ['NODES SYNCED','0x1A4D'],
+];
+let si=0;
+setInterval(()=>{si=(si+1)%statuses.length;setStatus(statuses[si][0],statuses[si][1]);},4000);
+</script>
 </body>
 </html>
